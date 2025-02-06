@@ -1,36 +1,10 @@
-import gleam/float
-import gleam/list
-
-pub type Debt {
-  Debt(name: String, amount: Int, interest: Float, minimum: Int)
-}
-
-pub type Strategy {
-  Biggest
-  Smallest
-}
-
-pub type Payment {
-  Payment(
-    // id: Int,
-    debt_name: String,
-    amount: Int,
-  )
-}
-
-pub type PaymentGroup {
-  PaymentGroup(id: Int, payments: List(Payment), total: Int)
-}
-
 pub fn main() {
   todo
-}
+  // get budget per payment period
+  // get debt list
 
-pub fn sort_debts(debts: List(Debt), strategy: Strategy) -> List(Debt) {
-  case strategy {
-    Biggest ->
-      list.sort(debts, fn(a, b) { float.compare(b.interest, a.interest) })
-    Smallest ->
-      list.sort(debts, fn(a, b) { float.compare(a.interest, b.interest) })
-  }
+  // sort debts depending on strategy
+  // calculate payment plan:
+  // - each payment group must at least meet minimum payment
+  // - then must maximize either smallest/biggest depending on strategy
 }
