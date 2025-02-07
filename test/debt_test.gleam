@@ -1,6 +1,5 @@
-import debt.{Debt, Payment}
+import debt.{Debt}
 import gleam/dict
-import gleam/io
 import gleam/list
 import gleeunit/should
 
@@ -12,6 +11,26 @@ const debts = [
   Debt("E", 2700, 29.49, 92.0),
   Debt("F", 4800, 20.24, 297.0),
 ]
+
+const mimimums = [
+  #("B", 60.0),
+  #("A", 724.0),
+  #("F", 297.0),
+  #("D", 196.0),
+  #("C", 445.0),
+  #("E", 92.0),
+]
+
+const first_payment = [
+  #("B", 246.0),
+  #("A", 724.0),
+  #("F", 297.0),
+  #("D", 196.0),
+  #("C", 445.0),
+  #("E", 92.0),
+]
+
+const budget = 2000.0
 
 pub fn sort_debts_biggest_test() {
   debts
@@ -28,19 +47,18 @@ pub fn sort_debts_smallest_test() {
 }
 
 pub fn next_minimum_test() {
-  let mimimums =
-    dict.from_list([
-      #("B", 60.0),
-      #("A", 724.0),
-      #("F", 297.0),
-      #("D", 196.0),
-      #("C", 445.0),
-      #("E", 92.0),
-    ])
-
   debts
   |> debt.sort_debts(debt.Smallest)
   |> debt.next_minimum_payment
-  |> io.debug
-  |> should.equal(mimimums)
+  |> should.equal(dict.from_list(mimimums))
 }
+
+pub fn next_payment_test() {
+  debts
+  |> debt.sort_debts(debt.Smallest)
+  |> debt.next_payment(budget)
+  |> should.equal(dict.from_list(first_payment))
+}
+// pub fn payment_plan_test() {
+//   todo
+// }

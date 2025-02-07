@@ -1,6 +1,7 @@
 import gleam/dict.{type Dict}
 import gleam/float
 import gleam/list
+import gleam/option
 
 pub type Debt {
   Debt(name: String, amount: Int, interest: Float, minimum: Float)
@@ -41,12 +42,31 @@ pub fn sort_debts(debts: List(Debt), strategy: Strategy) -> List(Debt) {
 // ... maybe separate calculate minimums function for UI
 
 pub fn next_minimum_payment(debts: List(Debt)) {
-  use payments, debt <- list.fold(debts, dict.new())
-  dict.insert(payments, debt.name, debt.minimum)
+  list.fold(debts, dict.new(), fn(payments, debt) {
+    dict.insert(payments, debt.name, debt.minimum)
+  })
 }
 
-pub fn next_payment(debts: List(Debt), budget: Float) -> Dict(String, Float) {
-  let minimum = next_minimum_payment(debts)
-  // let minimum_amount = dict.fold(minimum, 0.0, fn(acc, curr) { acc +. curr })
-  // let remaining = budget -. minimum_amount
+pub fn next_payment(debts: List(Debt), budget: Float) {
+  let minimum_dict = next_minimum_payment(debts)
+  let total =
+    dict.fold(minimum_dict, 0.0, fn(accumulator, key, value) {
+      accumulator +. value
+    })
+
+  let left_over_budget = budget -. total
+
+  let assert Ok(first) = list.first(debts)
+
+  dict.upsert(minimum_dict, first.name, fn(entry) {
+    let assert option.Some(amount) = entry
+    amount +. left_over_budget
+  })
+}
+
+pub fn payment_plan(
+  debts: List(Debt),
+  budget: Float,
+) -> List(Dict(String, Float)) {
+  todo
 }
