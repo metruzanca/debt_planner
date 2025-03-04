@@ -7,7 +7,7 @@ dev: ## Starts application in development mode
 	@watchexec --restart --wrap-process=session -e gleam "gleam run -m lustre/dev start"
 
 build: ## Builds application for production
-	@gleam build
+	@gleam run -m lustre/dev build
 
 test: ## Runs all tests in watch mode
 	@watchexec --restart --wrap-process=session -e gleam "gleam test"
