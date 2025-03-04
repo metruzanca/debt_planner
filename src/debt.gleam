@@ -63,10 +63,9 @@ pub fn next_payment(debts: List(Debt), budget: Float) {
     amount +. left_over_budget
   })
 }
-
-pub fn payment_plan(
-  debts: List(Debt),
-  budget: Float,
-) -> List(Dict(String, Float)) {
-  todo
-}
+// pub fn payment_plan(
+//   debts: List(Debt),
+//   budget: Float,
+// ) -> List(Dict(String, Float)) {
+//   todo
+// }
