@@ -1,8 +1,8 @@
 // build/dev/javascript/prelude.mjs
 var CustomType = class {
   withFields(fields) {
-    let properties = Object.keys(this).map((label) =>
-      label in fields ? fields[label] : this[label]
+    let properties = Object.keys(this).map(
+      (label) => label in fields ? fields[label] : this[label]
     );
     return new this.constructor(...properties);
   }
@@ -24,7 +24,8 @@ var List = class {
   // @internal
   atLeastLength(desired) {
     for (let _ of this) {
-      if (desired <= 0) return true;
+      if (desired <= 0)
+        return true;
       desired--;
     }
     return desired <= 0;
@@ -32,7 +33,8 @@ var List = class {
   // @internal
   hasLength(desired) {
     for (let _ of this) {
-      if (desired <= 0) return false;
+      if (desired <= 0)
+        return false;
       desired--;
     }
     return desired === 0;
@@ -40,7 +42,8 @@ var List = class {
   // @internal
   countLength() {
     let length2 = 0;
-    for (let _ of this) length2++;
+    for (let _ of this)
+      length2++;
     return length2;
   }
 };
@@ -65,7 +68,8 @@ var ListIterator = class {
     }
   }
 };
-var Empty = class extends List {};
+var Empty = class extends List {
+};
 var NonEmpty = class extends List {
   constructor(head, tail) {
     super();
@@ -104,23 +108,22 @@ function isEqual(x, y) {
   while (values2.length) {
     let a = values2.pop();
     let b = values2.pop();
-    if (a === b) continue;
-    if (!isObject(a) || !isObject(b)) return false;
-    let unequal =
-      !structurallyCompatibleObjects(a, b) ||
-      unequalDates(a, b) ||
-      unequalBuffers(a, b) ||
-      unequalArrays(a, b) ||
-      unequalMaps(a, b) ||
-      unequalSets(a, b) ||
-      unequalRegExps(a, b);
-    if (unequal) return false;
+    if (a === b)
+      continue;
+    if (!isObject(a) || !isObject(b))
+      return false;
+    let unequal = !structurallyCompatibleObjects(a, b) || unequalDates(a, b) || unequalBuffers(a, b) || unequalArrays(a, b) || unequalMaps(a, b) || unequalSets(a, b) || unequalRegExps(a, b);
+    if (unequal)
+      return false;
     const proto = Object.getPrototypeOf(a);
     if (proto !== null && typeof proto.equals === "function") {
       try {
-        if (a.equals(b)) continue;
-        else return false;
-      } catch {}
+        if (a.equals(b))
+          continue;
+        else
+          return false;
+      } catch {
+      }
     }
     let [keys2, get] = getters(a);
     for (let k of keys2(a)) {
@@ -141,11 +144,7 @@ function unequalDates(a, b) {
   return a instanceof Date && (a > b || a < b);
 }
 function unequalBuffers(a, b) {
-  return (
-    a.buffer instanceof ArrayBuffer &&
-    a.BYTES_PER_ELEMENT &&
-    !(a.byteLength === b.byteLength && a.every((n, i) => n === b[i]))
-  );
+  return a.buffer instanceof ArrayBuffer && a.BYTES_PER_ELEMENT && !(a.byteLength === b.byteLength && a.every((n, i) => n === b[i]));
 }
 function unequalArrays(a, b) {
   return Array.isArray(a) && a.length !== b.length;
@@ -154,9 +153,7 @@ function unequalMaps(a, b) {
   return a instanceof Map && a.size !== b.size;
 }
 function unequalSets(a, b) {
-  return (
-    a instanceof Set && (a.size != b.size || [...a].some((e) => !b.has(e)))
-  );
+  return a instanceof Set && (a.size != b.size || [...a].some((e) => !b.has(e)));
 }
 function unequalRegExps(a, b) {
   return a instanceof RegExp && (a.source !== b.source || a.flags !== b.flags);
@@ -168,7 +165,8 @@ function structurallyCompatibleObjects(a, b) {
   if (typeof a !== "object" && typeof b !== "object" && (!a || !b))
     return false;
   let nonstructural = [Promise, WeakSet, WeakMap, Function];
-  if (nonstructural.some((c) => a instanceof c)) return false;
+  if (nonstructural.some((c) => a instanceof c))
+    return false;
   return a.constructor === b.constructor;
 }
 function makeError(variant, module, line, fn, message, extra) {
@@ -178,12 +176,14 @@ function makeError(variant, module, line, fn, message, extra) {
   error.line = line;
   error.function = fn;
   error.fn = fn;
-  for (let k in extra) error[k] = extra[k];
+  for (let k in extra)
+    error[k] = extra[k];
   return error;
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/option.mjs
-var None = class extends CustomType {};
+var None = class extends CustomType {
+};
 
 // build/dev/javascript/gleam_stdlib/gleam/dict.mjs
 function insert(dict2, key, value) {
@@ -299,13 +299,13 @@ function hashByReference(o) {
   return hash;
 }
 function hashMerge(a, b) {
-  return (a ^ (b + 2654435769 + (a << 6) + (a >> 2))) | 0;
+  return a ^ b + 2654435769 + (a << 6) + (a >> 2) | 0;
 }
 function hashString(s) {
   let hash = 0;
   const len = s.length;
   for (let i = 0; i < len; i++) {
-    hash = (Math.imul(31, hash) + s.charCodeAt(i)) | 0;
+    hash = Math.imul(31, hash) + s.charCodeAt(i) | 0;
   }
   return hash;
 }
@@ -313,7 +313,7 @@ function hashNumber(n) {
   tempDataView.setFloat64(0, n);
   const i = tempDataView.getInt32(0);
   const j = tempDataView.getInt32(4);
-  return Math.imul(73244475, (i >> 16) ^ i) ^ j;
+  return Math.imul(73244475, i >> 16 ^ i) ^ j;
 }
 function hashBigInt(n) {
   return hashString(n.toString());
@@ -326,7 +326,8 @@ function hashObject(o) {
       if (typeof code === "number") {
         return code;
       }
-    } catch {}
+    } catch {
+    }
   }
   if (o instanceof Promise || o instanceof WeakSet || o instanceof WeakMap) {
     return hashByReference(o);
@@ -340,31 +341,35 @@ function hashObject(o) {
   }
   if (Array.isArray(o) || o instanceof Uint8Array) {
     for (let i = 0; i < o.length; i++) {
-      h = (Math.imul(31, h) + getHash(o[i])) | 0;
+      h = Math.imul(31, h) + getHash(o[i]) | 0;
     }
   } else if (o instanceof Set) {
     o.forEach((v) => {
-      h = (h + getHash(v)) | 0;
+      h = h + getHash(v) | 0;
     });
   } else if (o instanceof Map) {
     o.forEach((v, k) => {
-      h = (h + hashMerge(getHash(v), getHash(k))) | 0;
+      h = h + hashMerge(getHash(v), getHash(k)) | 0;
     });
   } else {
     const keys2 = Object.keys(o);
     for (let i = 0; i < keys2.length; i++) {
       const k = keys2[i];
       const v = o[k];
-      h = (h + hashMerge(getHash(v), hashString(k))) | 0;
+      h = h + hashMerge(getHash(v), hashString(k)) | 0;
     }
   }
   return h;
 }
 function getHash(u) {
-  if (u === null) return 1108378658;
-  if (u === void 0) return 1108378659;
-  if (u === true) return 1108378657;
-  if (u === false) return 1108378656;
+  if (u === null)
+    return 1108378658;
+  if (u === void 0)
+    return 1108378659;
+  if (u === true)
+    return 1108378657;
+  if (u === false)
+    return 1108378656;
   switch (typeof u) {
     case "number":
       return hashNumber(u);
@@ -394,24 +399,24 @@ var COLLISION_NODE = 3;
 var EMPTY = {
   type: INDEX_NODE,
   bitmap: 0,
-  array: [],
+  array: []
 };
 function mask(hash, shift) {
-  return (hash >>> shift) & MASK;
+  return hash >>> shift & MASK;
 }
 function bitpos(hash, shift) {
   return 1 << mask(hash, shift);
 }
 function bitcount(x) {
-  x -= (x >> 1) & 1431655765;
-  x = (x & 858993459) + ((x >> 2) & 858993459);
-  x = (x + (x >> 4)) & 252645135;
+  x -= x >> 1 & 1431655765;
+  x = (x & 858993459) + (x >> 2 & 858993459);
+  x = x + (x >> 4) & 252645135;
   x += x >> 8;
   x += x >> 16;
   return x & 127;
 }
 function index(bitmap, bit) {
-  return bitcount(bitmap & (bit - 1));
+  return bitcount(bitmap & bit - 1);
 }
 function cloneAndSet(arr, at, val) {
   const len = arr.length;
@@ -458,8 +463,8 @@ function createNode(shift, key1, val1, key2hash, key2, val2) {
       hash: key1hash,
       array: [
         { type: ENTRY, k: key1, v: val1 },
-        { type: ENTRY, k: key2, v: val2 },
-      ],
+        { type: ENTRY, k: key2, v: val2 }
+      ]
     };
   }
   const addedLeaf = { val: false };
@@ -490,7 +495,7 @@ function assocArray(root, shift, hash, key, val, addedLeaf) {
     return {
       type: ARRAY_NODE,
       size: root.size + 1,
-      array: cloneAndSet(root.array, idx, { type: ENTRY, k: key, v: val }),
+      array: cloneAndSet(root.array, idx, { type: ENTRY, k: key, v: val })
     };
   }
   if (node.type === ENTRY) {
@@ -504,8 +509,8 @@ function assocArray(root, shift, hash, key, val, addedLeaf) {
         array: cloneAndSet(root.array, idx, {
           type: ENTRY,
           k: key,
-          v: val,
-        }),
+          v: val
+        })
       };
     }
     addedLeaf.val = true;
@@ -516,7 +521,7 @@ function assocArray(root, shift, hash, key, val, addedLeaf) {
         root.array,
         idx,
         createNode(shift + SHIFT, node.k, node.v, hash, key, val)
-      ),
+      )
     };
   }
   const n = assoc(node, shift + SHIFT, hash, key, val, addedLeaf);
@@ -526,7 +531,7 @@ function assocArray(root, shift, hash, key, val, addedLeaf) {
   return {
     type: ARRAY_NODE,
     size: root.size,
-    array: cloneAndSet(root.array, idx, n),
+    array: cloneAndSet(root.array, idx, n)
   };
 }
 function assocIndex(root, shift, hash, key, val, addedLeaf) {
@@ -542,7 +547,7 @@ function assocIndex(root, shift, hash, key, val, addedLeaf) {
       return {
         type: INDEX_NODE,
         bitmap: root.bitmap,
-        array: cloneAndSet(root.array, idx, n),
+        array: cloneAndSet(root.array, idx, n)
       };
     }
     const nodeKey = node.k;
@@ -556,8 +561,8 @@ function assocIndex(root, shift, hash, key, val, addedLeaf) {
         array: cloneAndSet(root.array, idx, {
           type: ENTRY,
           k: key,
-          v: val,
-        }),
+          v: val
+        })
       };
     }
     addedLeaf.val = true;
@@ -568,7 +573,7 @@ function assocIndex(root, shift, hash, key, val, addedLeaf) {
         root.array,
         idx,
         createNode(shift + SHIFT, nodeKey, node.v, hash, key, val)
-      ),
+      )
     };
   } else {
     const n = root.array.length;
@@ -588,19 +593,19 @@ function assocIndex(root, shift, hash, key, val, addedLeaf) {
       return {
         type: ARRAY_NODE,
         size: n + 1,
-        array: nodes,
+        array: nodes
       };
     } else {
       const newArray = spliceIn(root.array, idx, {
         type: ENTRY,
         k: key,
-        v: val,
+        v: val
       });
       addedLeaf.val = true;
       return {
         type: INDEX_NODE,
         bitmap: root.bitmap | bit,
-        array: newArray,
+        array: newArray
       };
     }
   }
@@ -616,7 +621,7 @@ function assocCollision(root, shift, hash, key, val, addedLeaf) {
       return {
         type: COLLISION_NODE,
         hash,
-        array: cloneAndSet(root.array, idx, { type: ENTRY, k: key, v: val }),
+        array: cloneAndSet(root.array, idx, { type: ENTRY, k: key, v: val })
       };
     }
     const size = root.array.length;
@@ -624,14 +629,14 @@ function assocCollision(root, shift, hash, key, val, addedLeaf) {
     return {
       type: COLLISION_NODE,
       hash,
-      array: cloneAndSet(root.array, size, { type: ENTRY, k: key, v: val }),
+      array: cloneAndSet(root.array, size, { type: ENTRY, k: key, v: val })
     };
   }
   return assoc(
     {
       type: INDEX_NODE,
       bitmap: bitpos(root.hash, shift),
-      array: [root],
+      array: [root]
     },
     shift,
     hash,
@@ -751,19 +756,19 @@ function withoutArray(root, shift, hash, key) {
       return {
         type: INDEX_NODE,
         bitmap,
-        array: out,
+        array: out
       };
     }
     return {
       type: ARRAY_NODE,
       size: root.size - 1,
-      array: cloneAndSet(root.array, idx, n),
+      array: cloneAndSet(root.array, idx, n)
     };
   }
   return {
     type: ARRAY_NODE,
     size: root.size,
-    array: cloneAndSet(root.array, idx, n),
+    array: cloneAndSet(root.array, idx, n)
   };
 }
 function withoutIndex(root, shift, hash, key) {
@@ -782,7 +787,7 @@ function withoutIndex(root, shift, hash, key) {
       return {
         type: INDEX_NODE,
         bitmap: root.bitmap,
-        array: cloneAndSet(root.array, idx, n),
+        array: cloneAndSet(root.array, idx, n)
       };
     }
     if (root.bitmap === bit) {
@@ -791,7 +796,7 @@ function withoutIndex(root, shift, hash, key) {
     return {
       type: INDEX_NODE,
       bitmap: root.bitmap ^ bit,
-      array: spliceOut(root.array, idx),
+      array: spliceOut(root.array, idx)
     };
   }
   if (isEqual(key, node.k)) {
@@ -801,7 +806,7 @@ function withoutIndex(root, shift, hash, key) {
     return {
       type: INDEX_NODE,
       bitmap: root.bitmap ^ bit,
-      array: spliceOut(root.array, idx),
+      array: spliceOut(root.array, idx)
     };
   }
   return root;
@@ -817,7 +822,7 @@ function withoutCollision(root, key) {
   return {
     type: COLLISION_NODE,
     hash: root.hash,
-    array: spliceOut(root.array, idx),
+    array: spliceOut(root.array, idx)
   };
 }
 function forEach(root, fn) {
@@ -954,7 +959,7 @@ var Dict = class _Dict {
   hashCode() {
     let h = 0;
     this.forEach((v, k) => {
-      h = (h + hashMerge(getHash(v), getHash(k))) | 0;
+      h = h + hashMerge(getHash(v), getHash(k)) | 0;
     });
     return h;
   }
@@ -1026,7 +1031,7 @@ var unicode_whitespaces = [
   // Next line
   "\u2028",
   // Line separator
-  "\u2029",
+  "\u2029"
   // Paragraph separator
 ].join("");
 var trim_start_regex = new RegExp(`^[${unicode_whitespaces}]*`);
@@ -1112,10 +1117,14 @@ function attribute_to_event_handler(attribute2) {
   }
 }
 function do_element_list_handlers(elements2, handlers2, key) {
-  return index_fold(elements2, handlers2, (handlers3, element2, index3) => {
-    let key$1 = key + "-" + to_string(index3);
-    return do_handlers(element2, handlers3, key$1);
-  });
+  return index_fold(
+    elements2,
+    handlers2,
+    (handlers3, element2, index3) => {
+      let key$1 = key + "-" + to_string(index3);
+      return do_handlers(element2, handlers3, key$1);
+    }
+  );
 }
 function do_handlers(loop$element, loop$handlers, loop$key) {
   while (true) {
@@ -1132,16 +1141,20 @@ function do_handlers(loop$element, loop$handlers, loop$key) {
     } else {
       let attrs = element2.attrs;
       let children2 = element2.children;
-      let handlers$1 = fold(attrs, handlers2, (handlers3, attr) => {
-        let $ = attribute_to_event_handler(attr);
-        if ($.isOk()) {
-          let name = $[0][0];
-          let handler = $[0][1];
-          return insert(handlers3, key + "-" + name, handler);
-        } else {
-          return handlers3;
+      let handlers$1 = fold(
+        attrs,
+        handlers2,
+        (handlers3, attr) => {
+          let $ = attribute_to_event_handler(attr);
+          if ($.isOk()) {
+            let name = $[0][0];
+            let handler = $[0][1];
+            return insert(handlers3, key + "-" + name, handler);
+          } else {
+            return handlers3;
+          }
         }
-      });
+      );
       return do_element_list_handlers(children2, handlers$1, key);
     }
   }
@@ -1226,11 +1239,10 @@ var Init = class extends CustomType {
   }
 };
 function is_empty_element_diff(diff2) {
-  return (
-    isEqual(diff2.created, new_map()) &&
-    isEqual(diff2.removed, new$2()) &&
-    isEqual(diff2.updated, new_map())
-  );
+  return isEqual(diff2.created, new_map()) && isEqual(
+    diff2.removed,
+    new$2()
+  ) && isEqual(diff2.updated, new_map());
 }
 
 // build/dev/javascript/lustre/lustre/internals/runtime.mjs
@@ -1273,7 +1285,8 @@ var Event2 = class extends CustomType {
     this[1] = x1;
   }
 };
-var Shutdown = class extends CustomType {};
+var Shutdown = class extends CustomType {
+};
 var Subscribe = class extends CustomType {
   constructor(x0, x1) {
     super();
@@ -1295,10 +1308,7 @@ var ForceModel = class extends CustomType {
 };
 
 // build/dev/javascript/lustre/vdom.ffi.mjs
-if (
-  globalThis.customElements &&
-  !globalThis.customElements.get("lustre-fragment")
-) {
+if (globalThis.customElements && !globalThis.customElements.get("lustre-fragment")) {
   globalThis.customElements.define(
     "lustre-fragment",
     class LustreFragment extends HTMLElement {
@@ -1313,7 +1323,8 @@ function morph(prev, next, dispatch) {
   let stack = [{ prev, next, parent: prev.parentNode }];
   while (stack.length) {
     let { prev: prev2, next: next2, parent } = stack.pop();
-    while (next2.subtree !== void 0) next2 = next2.subtree();
+    while (next2.subtree !== void 0)
+      next2 = next2.subtree();
     if (next2.content !== void 0) {
       if (!prev2) {
         const created = document.createTextNode(next2.content);
@@ -1333,7 +1344,7 @@ function morph(prev, next, dispatch) {
         prev: prev2,
         next: next2,
         dispatch,
-        stack,
+        stack
       });
       if (!prev2) {
         parent.appendChild(created);
@@ -1347,16 +1358,8 @@ function morph(prev, next, dispatch) {
 }
 function createElementNode({ prev, next, dispatch, stack }) {
   const namespace = next.namespace || "http://www.w3.org/1999/xhtml";
-  const canMorph =
-    prev &&
-    prev.nodeType === Node.ELEMENT_NODE &&
-    prev.localName === next.tag &&
-    prev.namespaceURI === (next.namespace || "http://www.w3.org/1999/xhtml");
-  const el = canMorph
-    ? prev
-    : namespace
-    ? document.createElementNS(namespace, next.tag)
-    : document.createElement(next.tag);
+  const canMorph = prev && prev.nodeType === Node.ELEMENT_NODE && prev.localName === next.tag && prev.namespaceURI === (next.namespace || "http://www.w3.org/1999/xhtml");
+  const el = canMorph ? prev : namespace ? document.createElementNS(namespace, next.tag) : document.createElement(next.tag);
   let handlersForEl;
   if (!registeredHandlers.has(el)) {
     const emptyHandlers = /* @__PURE__ */ new Map();
@@ -1366,23 +1369,24 @@ function createElementNode({ prev, next, dispatch, stack }) {
     handlersForEl = registeredHandlers.get(el);
   }
   const prevHandlers = canMorph ? new Set(handlersForEl.keys()) : null;
-  const prevAttributes = canMorph
-    ? new Set(Array.from(prev.attributes, (a) => a.name))
-    : null;
+  const prevAttributes = canMorph ? new Set(Array.from(prev.attributes, (a) => a.name)) : null;
   let className = null;
   let style2 = null;
   let innerHTML = null;
   if (canMorph && next.tag === "textarea") {
     const innertText = next.children[Symbol.iterator]().next().value?.content;
-    if (innertText !== void 0) el.value = innertText;
+    if (innertText !== void 0)
+      el.value = innertText;
   }
   const delegated = [];
   for (const attr of next.attrs) {
     const name = attr[0];
     const value = attr[1];
     if (attr.as_property) {
-      if (el[name] !== value) el[name] = value;
-      if (canMorph) prevAttributes.delete(name);
+      if (el[name] !== value)
+        el[name] = value;
+      if (canMorph)
+        prevAttributes.delete(name);
     } else if (name.startsWith("on")) {
       const eventName = name.slice(2);
       const callback = dispatch(value, eventName === "input");
@@ -1390,7 +1394,8 @@ function createElementNode({ prev, next, dispatch, stack }) {
         el.addEventListener(eventName, lustreGenericEventHandler);
       }
       handlersForEl.set(eventName, callback);
-      if (canMorph) prevHandlers.delete(eventName);
+      if (canMorph)
+        prevHandlers.delete(eventName);
     } else if (name.startsWith("data-lustre-on-")) {
       const eventName = name.slice(15);
       const callback = dispatch(lustreServerEventHandler);
@@ -1403,10 +1408,7 @@ function createElementNode({ prev, next, dispatch, stack }) {
         prevHandlers.delete(eventName);
         prevAttributes.delete(name);
       }
-    } else if (
-      name.startsWith("delegate:data-") ||
-      name.startsWith("delegate:aria-")
-    ) {
+    } else if (name.startsWith("delegate:data-") || name.startsWith("delegate:aria-")) {
       el.setAttribute(name, value);
       delegated.push([name.slice(10), value]);
     } else if (name === "class") {
@@ -1416,18 +1418,23 @@ function createElementNode({ prev, next, dispatch, stack }) {
     } else if (name === "dangerous-unescaped-html") {
       innerHTML = value;
     } else {
-      if (el.getAttribute(name) !== value) el.setAttribute(name, value);
-      if (name === "value" || name === "selected") el[name] = value;
-      if (canMorph) prevAttributes.delete(name);
+      if (el.getAttribute(name) !== value)
+        el.setAttribute(name, value);
+      if (name === "value" || name === "selected")
+        el[name] = value;
+      if (canMorph)
+        prevAttributes.delete(name);
     }
   }
   if (className !== null) {
     el.setAttribute("class", className);
-    if (canMorph) prevAttributes.delete("class");
+    if (canMorph)
+      prevAttributes.delete("class");
   }
   if (style2 !== null) {
     el.setAttribute("style", style2);
-    if (canMorph) prevAttributes.delete("style");
+    if (canMorph)
+      prevAttributes.delete("style");
   }
   if (canMorph) {
     for (const attr of prevAttributes) {
@@ -1460,13 +1467,9 @@ function createElementNode({ prev, next, dispatch, stack }) {
   let keyedChildren = null;
   let incomingKeyedChildren = null;
   let firstChild = children(next).next().value;
-  if (
-    canMorph &&
-    firstChild !== void 0 && // Explicit checks are more verbose but truthy checks force a bunch of comparisons
-    // we don't care about: it's never gonna be a number etc.
-    firstChild.key !== void 0 &&
-    firstChild.key !== ""
-  ) {
+  if (canMorph && firstChild !== void 0 && // Explicit checks are more verbose but truthy checks force a bunch of comparisons
+  // we don't care about: it's never gonna be a number etc.
+  firstChild.key !== void 0 && firstChild.key !== "") {
     seenKeys = /* @__PURE__ */ new Set();
     keyedChildren = getKeyedChildren(prev);
     incomingKeyedChildren = getKeyedChildren(next);
@@ -1536,7 +1539,7 @@ function lustreServerEventHandler(event2) {
         return data2;
       },
       { data }
-    ),
+    )
   };
 }
 function getKeyedChildren(el) {
@@ -1544,24 +1547,14 @@ function getKeyedChildren(el) {
   if (el) {
     for (const child of children(el)) {
       const key = child?.key || child?.getAttribute?.("data-lustre-key");
-      if (key) keyedChildren.set(key, child);
+      if (key)
+        keyedChildren.set(key, child);
     }
   }
   return keyedChildren;
 }
-function diffKeyedChild(
-  prevChild,
-  child,
-  el,
-  stack,
-  incomingKeyedChildren,
-  keyedChildren,
-  seenKeys
-) {
-  while (
-    prevChild &&
-    !incomingKeyedChildren.has(prevChild.getAttribute("data-lustre-key"))
-  ) {
+function diffKeyedChild(prevChild, child, el, stack, incomingKeyedChildren, keyedChildren, seenKeys) {
+  while (prevChild && !incomingKeyedChildren.has(prevChild.getAttribute("data-lustre-key"))) {
     const nextChild = prevChild.nextSibling;
     el.removeChild(prevChild);
     prevChild = nextChild;
@@ -1625,18 +1618,12 @@ var LustreClientApplication = class _LustreClientApplication {
    * @returns {Gleam.Ok<(action: Lustre.Action<Lustre.Client, Msg>>) => void>}
    */
   static start({ init: init3, update: update2, view: view2 }, selector, flags) {
-    if (!is_browser()) return new Error(new NotABrowser());
-    const root =
-      selector instanceof HTMLElement
-        ? selector
-        : document.querySelector(selector);
-    if (!root) return new Error(new ElementNotFound(selector));
-    const app = new _LustreClientApplication(
-      root,
-      init3(flags),
-      update2,
-      view2
-    );
+    if (!is_browser())
+      return new Error(new NotABrowser());
+    const root = selector instanceof HTMLElement ? selector : document.querySelector(selector);
+    if (!root)
+      return new Error(new ElementNotFound(selector));
+    const app = new _LustreClientApplication(root, init3(flags), update2, view2);
     return new Ok((action) => app.send(action));
   }
   /**
@@ -1652,8 +1639,8 @@ var LustreClientApplication = class _LustreClientApplication {
     this.#model = init3;
     this.#update = update2;
     this.#view = view2;
-    this.#tickScheduled = window.requestAnimationFrame(() =>
-      this.#tick(effects.all.toArray(), true)
+    this.#tickScheduled = window.requestAnimationFrame(
+      () => this.#tick(effects.all.toArray(), true)
     );
   }
   /** @type {Element} */
@@ -1670,17 +1657,13 @@ var LustreClientApplication = class _LustreClientApplication {
         this.#queue = [];
         this.#model = action[0][0];
         const vdom = this.#view(this.#model);
-        const dispatch =
-          (handler, immediate = false) =>
-          (event2) => {
-            const result = handler(event2);
-            if (result instanceof Ok) {
-              this.send(new Dispatch(result[0], immediate));
-            }
-          };
-        const prev =
-          this.root.firstChild ??
-          this.root.appendChild(document.createTextNode(""));
+        const dispatch = (handler, immediate = false) => (event2) => {
+          const result = handler(event2);
+          if (result instanceof Ok) {
+            this.send(new Dispatch(result[0], immediate));
+          }
+        };
+        const prev = this.root.firstChild ?? this.root.appendChild(document.createTextNode(""));
         morph(prev, vdom, dispatch);
       }
     } else if (action instanceof Dispatch) {
@@ -1700,7 +1683,7 @@ var LustreClientApplication = class _LustreClientApplication {
         new CustomEvent(event2, {
           detail: data,
           bubbles: true,
-          composed: true,
+          composed: true
         })
       );
     } else if (action instanceof Shutdown) {
@@ -1731,17 +1714,13 @@ var LustreClientApplication = class _LustreClientApplication {
     this.#tickScheduled = void 0;
     this.#flush(effects);
     const vdom = this.#view(this.#model);
-    const dispatch =
-      (handler, immediate = false) =>
-      (event2) => {
-        const result = handler(event2);
-        if (result instanceof Ok) {
-          this.send(new Dispatch(result[0], immediate));
-        }
-      };
-    const prev =
-      this.root.firstChild ??
-      this.root.appendChild(document.createTextNode(""));
+    const dispatch = (handler, immediate = false) => (event2) => {
+      const result = handler(event2);
+      if (result instanceof Ok) {
+        this.send(new Dispatch(result[0], immediate));
+      }
+    };
+    const prev = this.root.firstChild ?? this.root.appendChild(document.createTextNode(""));
     morph(prev, vdom, dispatch);
   }
   #flush(effects = []) {
@@ -1754,15 +1733,15 @@ var LustreClientApplication = class _LustreClientApplication {
     while (effects.length > 0) {
       const effect = effects.shift();
       const dispatch = (msg) => this.send(new Dispatch(msg));
-      const emit2 = (event2, data) =>
-        this.root.dispatchEvent(
-          new CustomEvent(event2, {
-            detail: data,
-            bubbles: true,
-            composed: true,
-          })
-        );
-      const select = () => {};
+      const emit2 = (event2, data) => this.root.dispatchEvent(
+        new CustomEvent(event2, {
+          detail: data,
+          bubbles: true,
+          composed: true
+        })
+      );
+      const select = () => {
+      };
       const root = this.root;
       effect({ dispatch, emit: emit2, select, root });
     }
@@ -1773,10 +1752,7 @@ var LustreClientApplication = class _LustreClientApplication {
 };
 var start = LustreClientApplication.start;
 var LustreServerApplication = class _LustreServerApplication {
-  static start(
-    { init: init3, update: update2, view: view2, on_attribute_change },
-    flags
-  ) {
+  static start({ init: init3, update: update2, view: view2, on_attribute_change }, flags) {
     const app = new _LustreServerApplication(
       init3(flags),
       update2,
@@ -1799,9 +1775,11 @@ var LustreServerApplication = class _LustreServerApplication {
     if (action instanceof Attrs) {
       for (const attr of action[0]) {
         const decoder = this.#onAttributeChange.get(attr[0]);
-        if (!decoder) continue;
+        if (!decoder)
+          continue;
         const msg = decoder(attr[1]);
-        if (msg instanceof Error) continue;
+        if (msg instanceof Error)
+          continue;
         this.#queue.push(msg);
       }
       this.#tick();
@@ -1819,9 +1797,11 @@ var LustreServerApplication = class _LustreServerApplication {
       }
     } else if (action instanceof Event2) {
       const handler = this.#handlers.get(action[0]);
-      if (!handler) return;
+      if (!handler)
+        return;
       const msg = handler(action[1]);
-      if (msg instanceof Error) return;
+      if (msg instanceof Error)
+        return;
       this.#queue.push(msg[0]);
       this.#tick();
     } else if (action instanceof Subscribe) {
@@ -1864,15 +1844,15 @@ var LustreServerApplication = class _LustreServerApplication {
     while (effects.length > 0) {
       const effect = effects.shift();
       const dispatch = (msg) => this.send(new Dispatch(msg));
-      const emit2 = (event2, data) =>
-        this.root.dispatchEvent(
-          new CustomEvent(event2, {
-            detail: data,
-            bubbles: true,
-            composed: true,
-          })
-        );
-      const select = () => {};
+      const emit2 = (event2, data) => this.root.dispatchEvent(
+        new CustomEvent(event2, {
+          detail: data,
+          bubbles: true,
+          composed: true
+        })
+      );
+      const select = () => {
+      };
       const root = null;
       effect({ dispatch, emit: emit2, select, root });
     }
@@ -1900,7 +1880,8 @@ var ElementNotFound = class extends CustomType {
     this.selector = selector;
   }
 };
-var NotABrowser = class extends CustomType {};
+var NotABrowser = class extends CustomType {
+};
 function application(init3, update2, view2) {
   return new App(init3, update2, view2, new None());
 }
@@ -1914,9 +1895,13 @@ function simple(init3, update2, view2) {
   return application(init$1, update$1, view2);
 }
 function start2(app, selector, flags) {
-  return guard(!is_browser(), new Error(new NotABrowser()), () => {
-    return start(app, selector, flags);
-  });
+  return guard(
+    !is_browser(),
+    new Error(new NotABrowser()),
+    () => {
+      return start(app, selector, flags);
+    }
+  );
 }
 
 // build/dev/javascript/lustre/lustre/element/html.mjs
@@ -1944,8 +1929,10 @@ function on_click(msg) {
 }
 
 // build/dev/javascript/app/app.mjs
-var Incr = class extends CustomType {};
-var Decr = class extends CustomType {};
+var Incr = class extends CustomType {
+};
+var Decr = class extends CustomType {
+};
 function init2(_) {
   return 0;
 }
@@ -1963,7 +1950,7 @@ function view(model) {
     toList([
       button(toList([on_click(new Incr())]), toList([text2("+")])),
       p(toList([]), toList([text2(count)])),
-      button(toList([on_click(new Decr())]), toList([text2("-")])),
+      button(toList([on_click(new Decr())]), toList([text2("-")]))
     ])
   );
 }
