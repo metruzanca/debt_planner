@@ -1,5 +1,6 @@
 import gleam/int
 import lustre
+import lustre/attribute
 import lustre/element/html.{button, div, p, text}
 import lustre/event
 

@@ -3,9 +3,11 @@ version = "0.0.0"
 licences = ["Apache-2.0"]
 repository = { type = "github", user = "metruzanca", repo = "debt_planner" }
 gleam = ">= 1.6.0"
-dependencies = { gleam_stdlib = ">= 0.53.0 and < 1.0.0", lustre = ">= 4.6.3 and < 5.0.0" }
-target = "javascript"                                                                      # For Lustre
+target = "javascript"
 
+[dependencies]
+gleam_stdlib = ">= 0.53.0 and < 1.0.0"
+lustre = ">= 4.6.3 and < 5.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
