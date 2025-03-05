@@ -52,7 +52,7 @@ fn view(model: Model) {
   // let count = int.to_string(model)
   let Model(debts) = model
 
-  div([attribute.class("h-screen w-full flex items-center justify-center")], [
+  html.main([attribute.class("h-screen w-full flex justify-center p-4")], [
     html.div([], [
       div([attribute.class("w-full flex justify-between")], [
         div([], [
@@ -71,7 +71,13 @@ fn view(model: Model) {
         list.index_map(debts, fn(debt, i) {
           div([attribute.class("flex")], [
             debt_input(debt),
-            ui.button([event.on_click(RemoveDebt(i))], [text("-")]),
+            ui.button(
+              [
+                attribute.disabled(list.length(debts) == 1),
+                event.on_click(RemoveDebt(i)),
+              ],
+              [text("-")],
+            ),
           ])
         }),
       ),
