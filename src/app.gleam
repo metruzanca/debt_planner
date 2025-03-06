@@ -6,6 +6,7 @@ import lustre
 import lustre/attribute
 import lustre/element/html.{button, div, p, text}
 import lustre/event
+import tardis
 import ui
 import utils
 
@@ -17,10 +18,11 @@ import utils
 // - each payment group must at least meet minimum payment
 // - then must maximize either smallest/biggest depending on strategy
 pub fn main() {
-  let app = lustre.simple(init, update, view)
-  let assert Ok(_) = lustre.start(app, "#app", Nil)
-
-  Nil
+  let assert Ok(main) = tardis.single("main")
+  lustre.simple(init, update, view)
+  |> tardis.wrap(with: main)
+  |> lustre.start("#app", Nil)
+  |> tardis.activate(with: main)
 }
 
 type Model {
@@ -31,7 +33,7 @@ fn init(_flags) {
   Model(debts: [debt.create()])
 }
 
-type Msg {
+pub type Msg {
   AddDebt
   RemoveDebt(index: Int)
 }
