@@ -1,9 +1,13 @@
 import debt
+import gleam/bool
+import gleam/float
 import gleam/int
 import gleam/io
 import gleam/list
+import gleam/result
 import lustre
-import lustre/attribute
+import lustre/attribute.{class}
+import lustre/element
 import lustre/element/html.{button, div, p, text}
 import lustre/event
 import tardis
@@ -25,38 +29,56 @@ pub fn main() {
   |> tardis.activate(with: main)
 }
 
-type Model {
+pub type Model {
   Model(debts: List(debt.Debt))
 }
 
 fn init(_flags) {
-  Model(debts: [debt.create()])
+  Model(debts: [debt.create(0)])
 }
 
 pub type Msg {
   AddDebt
   RemoveDebt(index: Int)
+
+  // Inputs
+  OnChangeName(id: Int, value: String)
+  OnChangeAmount(id: Int, value: Float)
+  OnChangeInterest(id: Int, value: Float)
+  OnChangeTotal(id: Int, value: Float)
 }
 
 // TODO tardis dev tools
 fn update(model: Model, msg: Msg) -> Model {
-  let Model(m) = model
-
-  io.debug(m)
+  let len = list.length(model.debts)
   case msg {
-    AddDebt -> Model(debts: list.append(m, [debt.create()]))
-    RemoveDebt(index) -> Model(debts: utils.remove_at(m, index))
+    AddDebt -> Model(debts: list.append(model.debts, [debt.create(len)]))
+    RemoveDebt(index) -> Model(debts: utils.remove_at(model.debts, index))
+    OnChangeAmount(id, amount) -> {
+      io.debug(id)
+      io.debug(amount)
+      // TODO probably better to make debts a dict or update this better
+      Model(
+        debts: list.map(model.debts, fn(value) {
+          use <- bool.guard(id == value.id, value)
+          debt.Debt(..value, amount:)
+        }),
+      )
+    }
+    OnChangeInterest(_, _) -> todo
+    OnChangeName(_, _) -> todo
+    OnChangeTotal(_, __) -> todo
+    _ -> model
   }
   |> io.debug
 }
 
 fn view(model: Model) {
   // let count = int.to_string(model)
-  let Model(debts) = model
 
-  html.main([attribute.class("h-screen w-full flex justify-center p-4")], [
+  html.main([class("h-screen w-full flex justify-center p-4")], [
     html.div([], [
-      div([attribute.class("w-full flex justify-between")], [
+      div([class("w-full flex justify-between")], [
         div([], [
           ui.select([], [
             html.option(
@@ -68,30 +90,52 @@ fn view(model: Model) {
         ]),
         ui.button([event.on_click(AddDebt)], [text("+")]),
       ]),
-      div(
-        [attribute.class("flex flex-col")],
-        list.index_map(debts, fn(debt, i) {
-          div([attribute.class("flex")], [
-            debt_input(debt),
-            ui.button(
-              [
-                attribute.disabled(list.length(debts) == 1),
-                event.on_click(RemoveDebt(i)),
-              ],
-              [text("-")],
-            ),
-          ])
-        }),
-      ),
+      element.keyed(div([class("flex flex-col")], _), {
+        use current, index <- list.index_map(model.debts)
+        let item = debt_input(current, index)
+
+        #(int.to_string(current.id), item)
+      }),
     ]),
   ])
 }
 
-fn debt_input(model: debt.Debt) {
-  div([], [
+fn debt_input(model: debt.Debt, i: Int) {
+  // let handle_input = fn(e) {
+  //   event.value(e)
+  // https://hexdocs.pm/lustre/guide/06-full-stack-applications.html
+  //   |> result.nil_error // nil_error is not in stdlib anymore. No clue what it did.
+  //   |> result.then(float.parse)
+  //   |> result.map(OnChangeAmount(model.id, _))
+  //   |> result.replace_error([])
+  // }
+
+  div([class("flex"), attribute.id(int.to_string(model.id))], [
     ui.input([attribute.placeholder("Name"), attribute.value(model.name)]),
-    ui.input([attribute.placeholder("Amount")]),
-    ui.input([attribute.placeholder("Interest")]),
-    ui.input([attribute.placeholder("Minimum")]),
+    ui.input([
+      attribute.type_("number"),
+      attribute.placeholder("Amount"),
+      attribute.value(float.to_string(model.amount)),
+      event.on_input(fn(x) {
+        // lol, if I you try to parse  4 to float, it fails because it needs to be 4.0
+        let assert Ok(x) = int.parse(x)
+        let x = int.to_float(x)
+
+        OnChangeAmount(model.id, x)
+      }),
+    ]),
+    ui.input([
+      attribute.type_("number"),
+      attribute.placeholder("Interest"),
+      attribute.value(float.to_string(model.interest)),
+    ]),
+    ui.input([
+      attribute.type_("number"),
+      attribute.placeholder("Minimum"),
+      attribute.value(float.to_string(model.minimum)),
+    ]),
+    ui.button([attribute.disabled(i == 0), event.on_click(RemoveDebt(i))], [
+      text("-"),
+    ]),
   ])
 }

@@ -5,7 +5,7 @@ import gleam/list
 import gleam/option
 
 pub type Debt {
-  Debt(name: String, amount: Float, interest: Float, minimum: Float)
+  Debt(id: Int, name: String, amount: Float, interest: Float, minimum: Float)
 }
 
 pub type Strategy {
@@ -25,8 +25,8 @@ pub type PaymentGroup {
   PaymentGroup(id: Int, payments: List(Payment), total: Int)
 }
 
-pub fn create() {
-  Debt(name: "", amount: 0.0, interest: 0.0, minimum: 0.0)
+pub fn create(id: Int) {
+  Debt(id:, name: "", amount: 0.0, interest: 0.0, minimum: 0.0)
 }
 
 pub fn sort_debts(debts: List(Debt), strategy: Strategy) -> List(Debt) {
