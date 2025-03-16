@@ -1,10 +1,8 @@
 import debt
 import gleam/bool
-import gleam/float
 import gleam/int
 import gleam/io
 import gleam/list
-import gleam/result
 import lustre
 import lustre/attribute.{class}
 import lustre/element
@@ -43,9 +41,9 @@ pub type Msg {
 
   // Inputs
   OnChangeName(id: Int, value: String)
-  OnChangeAmount(id: Int, value: Float)
-  OnChangeInterest(id: Int, value: Float)
-  OnChangeTotal(id: Int, value: Float)
+  OnChangeAmount(id: Int, value: Int)
+  OnChangeInterest(id: Int, value: Int)
+  OnChangeTotal(id: Int, value: Int)
 }
 
 // TODO tardis dev tools
@@ -60,7 +58,7 @@ fn update(model: Model, msg: Msg) -> Model {
       // TODO probably better to make debts a dict or update this better
       Model(
         debts: list.map(model.debts, fn(value) {
-          use <- bool.guard(id == value.id, value)
+          use <- bool.guard(id != value.id, value)
           debt.Debt(..value, amount:)
         }),
       )
@@ -100,7 +98,7 @@ fn view(model: Model) {
   ])
 }
 
-fn debt_input(model: debt.Debt, i: Int) {
+fn debt_input(debt: debt.Debt, i: Int) {
   // let handle_input = fn(e) {
   //   event.value(e)
   // https://hexdocs.pm/lustre/guide/06-full-stack-applications.html
@@ -110,29 +108,26 @@ fn debt_input(model: debt.Debt, i: Int) {
   //   |> result.replace_error([])
   // }
 
-  div([class("flex"), attribute.id(int.to_string(model.id))], [
-    ui.input([attribute.placeholder("Name"), attribute.value(model.name)]),
+  div([class("flex"), attribute.id(int.to_string(debt.id))], [
+    ui.input([attribute.placeholder("Name"), attribute.value(debt.name)]),
     ui.input([
       attribute.type_("number"),
       attribute.placeholder("Amount"),
-      attribute.value(float.to_string(model.amount)),
+      attribute.value(int.to_string(debt.amount)),
       event.on_input(fn(x) {
-        // lol, if I you try to parse  4 to float, it fails because it needs to be 4.0
         let assert Ok(x) = int.parse(x)
-        let x = int.to_float(x)
-
-        OnChangeAmount(model.id, x)
+        OnChangeAmount(debt.id, x)
       }),
     ]),
     ui.input([
       attribute.type_("number"),
       attribute.placeholder("Interest"),
-      attribute.value(float.to_string(model.interest)),
+      attribute.value(int.to_string(debt.interest)),
     ]),
     ui.input([
       attribute.type_("number"),
       attribute.placeholder("Minimum"),
-      attribute.value(float.to_string(model.minimum)),
+      attribute.value(int.to_string(debt.minimum)),
     ]),
     ui.button([attribute.disabled(i == 0), event.on_click(RemoveDebt(i))], [
       text("-"),

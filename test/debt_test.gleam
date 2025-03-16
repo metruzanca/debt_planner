@@ -4,46 +4,46 @@ import gleam/list
 import gleeunit/should
 
 const debts = [
-  Debt(0, "A", 37_300.0, 7.99, 724.0),
-  Debt(1, "B", 4369.0, 3.4, 60.0),
-  Debt(2, "C", 11_200.0, 27.99, 445.0),
-  Debt(3, "D", 5700.0, 26.99, 196.0),
-  Debt(4, "E", 2700.0, 29.49, 92.0),
-  Debt(5, "F", 4800.0, 20.24, 297.0),
+  Debt(0, "A", 37_300, 799, 724),
+  Debt(1, "B", 4369, 34, 60),
+  Debt(2, "C", 11_200, 2799, 445),
+  Debt(3, "D", 5700, 2699, 196),
+  Debt(4, "E", 2700, 2949, 92),
+  Debt(5, "F", 4800, 2024, 297),
 ]
 
 const mimimums = [
-  #("B", 60.0),
-  #("A", 724.0),
-  #("F", 297.0),
-  #("D", 196.0),
-  #("C", 445.0),
-  #("E", 92.0),
+  #("B", 60),
+  #("A", 724),
+  #("F", 297),
+  #("D", 196),
+  #("C", 445),
+  #("E", 92),
 ]
 
 const first_payment = [
-  #("B", 246.0),
-  #("A", 724.0),
-  #("F", 297.0),
-  #("D", 196.0),
-  #("C", 445.0),
-  #("E", 92.0),
+  #("B", 246),
+  #("A", 724),
+  #("F", 297),
+  #("D", 196),
+  #("C", 445),
+  #("E", 92),
 ]
 
-const budget = 2000.0
+const budget = 2000
 
 pub fn sort_debts_biggest_test() {
   debts
   |> debt.sort_debts(debt.Biggest)
   |> list.map(fn(d) { d.interest })
-  |> should.equal([29.49, 27.99, 26.99, 20.24, 7.99, 3.4])
+  |> should.equal([2949, 2799, 2699, 2024, 799, 34])
 }
 
 pub fn sort_debts_smallest_test() {
   debts
   |> debt.sort_debts(debt.Smallest)
   |> list.map(fn(d) { d.interest })
-  |> should.equal([3.4, 7.99, 20.24, 26.99, 27.99, 29.49])
+  |> should.equal([34, 799, 2024, 2699, 2799, 2949])
 }
 
 pub fn next_minimum_test() {

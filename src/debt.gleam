@@ -5,7 +5,7 @@ import gleam/list
 import gleam/option
 
 pub type Debt {
-  Debt(id: Int, name: String, amount: Float, interest: Float, minimum: Float)
+  Debt(id: Int, name: String, amount: Int, interest: Int, minimum: Int)
 }
 
 pub type Strategy {
@@ -26,15 +26,15 @@ pub type PaymentGroup {
 }
 
 pub fn create(id: Int) {
-  Debt(id:, name: "", amount: 0.0, interest: 0.0, minimum: 0.0)
+  Debt(id:, name: "", amount: 0, interest: 0, minimum: 0)
 }
 
 pub fn sort_debts(debts: List(Debt), strategy: Strategy) -> List(Debt) {
   case strategy {
     Biggest ->
-      list.sort(debts, fn(a, b) { float.compare(b.interest, a.interest) })
+      list.sort(debts, fn(a, b) { int.compare(b.interest, a.interest) })
     Smallest ->
-      list.sort(debts, fn(a, b) { float.compare(a.interest, b.interest) })
+      list.sort(debts, fn(a, b) { int.compare(a.interest, b.interest) })
   }
 }
 
@@ -52,20 +52,20 @@ pub fn next_minimum_payment(debts: List(Debt)) {
   })
 }
 
-pub fn next_payment(debts: List(Debt), budget: Float) {
+pub fn next_payment(debts: List(Debt), budget: Int) {
   let minimum_dict = next_minimum_payment(debts)
   let total =
-    dict.fold(minimum_dict, 0.0, fn(accumulator, key, value) {
-      accumulator +. value
+    dict.fold(minimum_dict, 0, fn(accumulator, key, value) {
+      accumulator + value
     })
 
-  let left_over_budget = budget -. total
+  let left_over_budget = budget - total
 
   let assert Ok(first) = list.first(debts)
 
   dict.upsert(minimum_dict, first.name, fn(entry) {
     let assert option.Some(amount) = entry
-    amount +. left_over_budget
+    amount + left_over_budget
   })
 }
 // pub fn payment_plan(
