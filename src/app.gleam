@@ -43,8 +43,12 @@ pub type Msg {
   OnChangeName(id: Int, value: String)
   OnChangeAmount(id: Int, value: Int)
   OnChangeInterest(id: Int, value: Int)
-  OnChangeTotal(id: Int, value: Int)
+  OnChangeMinimum(id: Int, value: Int)
+  Noop
 }
+
+type OnInputChange =
+  fn(Int, Int) -> Msg
 
 // TODO tardis dev tools
 fn update(model: Model, msg: Msg) -> Model {
@@ -52,53 +56,95 @@ fn update(model: Model, msg: Msg) -> Model {
   case msg {
     AddDebt -> Model(debts: list.append(model.debts, [debt.create(len)]))
     RemoveDebt(index) -> Model(debts: utils.remove_at(model.debts, index))
-    OnChangeAmount(id, amount) -> {
-      io.debug(id)
-      io.debug(amount)
-      // TODO probably better to make debts a dict or update this better
+    OnChangeAmount(id, amount) ->
       Model(
         debts: list.map(model.debts, fn(value) {
           use <- bool.guard(id != value.id, value)
           debt.Debt(..value, amount:)
         }),
       )
-    }
-    OnChangeInterest(_, _) -> todo
-    OnChangeName(_, _) -> todo
-    OnChangeTotal(_, __) -> todo
+
+    OnChangeInterest(id, interest) ->
+      Model(
+        debts: list.map(model.debts, fn(value) {
+          use <- bool.guard(id != value.id, value)
+          debt.Debt(..value, interest:)
+        }),
+      )
+    OnChangeName(id, name) ->
+      Model(
+        debts: list.map(model.debts, fn(value) {
+          use <- bool.guard(id != value.id, value)
+          debt.Debt(..value, name:)
+        }),
+      )
+    OnChangeMinimum(id, minimum) ->
+      Model(
+        debts: list.map(model.debts, fn(value) {
+          use <- bool.guard(id != value.id, value)
+          debt.Debt(..value, minimum:)
+        }),
+      )
     _ -> model
   }
-  |> io.debug
+  // |> io.debug()
 }
 
 fn view(model: Model) {
   // let count = int.to_string(model)
 
-  html.main([class("h-screen w-full flex justify-center p-4")], [
-    html.div([], [
-      div([class("w-full flex justify-between")], [
-        div([], [
-          ui.select([], [
-            html.option(
-              [attribute.selected(True), attribute.value("smallest")],
-              "Smallest",
-            ),
-            html.option([attribute.value("biggest")], "Biggest"),
+  html.main(
+    [class("h-screen w-full flex justify-center p-4"), keybinds(model)],
+    [
+      html.div([], [
+        div([class("w-full flex justify-between")], [
+          div([], [
+            ui.select([], [
+              html.option(
+                [attribute.selected(True), attribute.value("smallest")],
+                "Smallest",
+              ),
+              html.option([attribute.value("biggest")], "Biggest"),
+            ]),
           ]),
+          ui.button([event.on_click(AddDebt)], [text("+")]),
         ]),
-        ui.button([event.on_click(AddDebt)], [text("+")]),
-      ]),
-      element.keyed(div([class("flex flex-col")], _), {
-        use current, index <- list.index_map(model.debts)
-        let item = debt_input(current, index)
+        element.keyed(div([class("flex flex-col")], _), {
+          use current, index <- list.index_map(model.debts)
+          let item = debt_input(current, index, list.length(model.debts))
 
-        #(int.to_string(current.id), item)
-      }),
-    ]),
-  ])
+          #(int.to_string(current.id), item)
+        }),
+        html.hr([class("my-4")]),
+        table(["First", "Second"]),
+        // html.table([class("border")], [
+      //   html.thead([class("border")], [
+      //     html.th([class("p-2")], [text("First")]),
+      //     html.th([class("p-2")], [text("Second")]),
+      //   ]),
+      //   html.tbody([], [
+      //     html.tr([], [
+      //       html.td([class("p-2")], [text("aaaaa")]),
+      //       html.td([class("p-2")], [text("bbbbb")]),
+      //     ]),
+      //   ]),
+      // ]),
+      ]),
+    ],
+  )
 }
 
-fn debt_input(debt: debt.Debt, i: Int) {
+/// Global keyboard shortcuts
+fn keybinds(model: Model) {
+  event.on_keydown(fn(key) {
+    case key {
+      "Enter" -> AddDebt
+      _ -> Noop
+    }
+  })
+}
+
+fn debt_input(debt: debt.Debt, i: Int, len: Int) {
   // let handle_input = fn(e) {
   //   event.value(e)
   // https://hexdocs.pm/lustre/guide/06-full-stack-applications.html
@@ -108,29 +154,52 @@ fn debt_input(debt: debt.Debt, i: Int) {
   //   |> result.replace_error([])
   // }
 
+  let handle_input = fn(smg: OnInputChange) {
+    fn(x) {
+      let assert Ok(x) = int.parse(x)
+      smg(debt.id, x)
+    }
+  }
+
   div([class("flex"), attribute.id(int.to_string(debt.id))], [
     ui.input([attribute.placeholder("Name"), attribute.value(debt.name)]),
     ui.input([
       attribute.type_("number"),
       attribute.placeholder("Amount"),
       attribute.value(int.to_string(debt.amount)),
-      event.on_input(fn(x) {
-        let assert Ok(x) = int.parse(x)
-        OnChangeAmount(debt.id, x)
-      }),
+      event.on_input(handle_input(OnChangeAmount)),
     ]),
     ui.input([
       attribute.type_("number"),
       attribute.placeholder("Interest"),
       attribute.value(int.to_string(debt.interest)),
+      event.on_input(handle_input(OnChangeInterest)),
     ]),
     ui.input([
       attribute.type_("number"),
       attribute.placeholder("Minimum"),
       attribute.value(int.to_string(debt.minimum)),
+      event.on_input(handle_input(OnChangeMinimum)),
     ]),
-    ui.button([attribute.disabled(i == 0), event.on_click(RemoveDebt(i))], [
+    ui.button([attribute.disabled(len == 1), event.on_click(RemoveDebt(i))], [
       text("-"),
+    ]),
+  ])
+}
+
+// TODO how to add global keyboard events? e.g. window.addEventListe`r('keyup', ...) equivalent
+
+fn table(headers: List(String)) {
+  html.table([class("border")], [
+    html.thead(
+      [class("border")],
+      list.map(headers, fn(value) { html.th([class("p-2")], [text(value)]) }),
+    ),
+    html.tbody([], [
+      html.tr([], [
+        html.td([class("p-2")], [text("aaaaa")]),
+        html.td([class("p-2")], [text("bbbbb")]),
+      ]),
     ]),
   ])
 }
