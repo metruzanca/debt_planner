@@ -1,5 +1,7 @@
+import gleam/list
 import lustre/attribute.{type Attribute}
 import lustre/element.{type Element, element, namespaced}
+import lustre/element/html
 
 pub fn input(attrs: List(Attribute(msg))) -> Element(msg) {
   element.element(
@@ -48,4 +50,25 @@ pub fn select(
     ],
     children,
   )
+}
+
+pub fn table(
+  headers: List(element.Element(a)),
+  rows: List(List(element.Element(a))),
+) {
+  html.table([attribute.class("border")], [
+    html.thead(
+      [attribute.class("border")],
+      list.map(headers, fn(value) { html.th([attribute.class("p-2")], [value]) }),
+    ),
+    html.tbody(
+      [],
+      list.map(rows, fn(row) {
+        html.tr(
+          [],
+          list.map(row, fn(value) { html.td([attribute.class("p-2")], [value]) }),
+        )
+      }),
+    ),
+  ])
 }

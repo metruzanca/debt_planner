@@ -1,12 +1,13 @@
 import debt
 import gleam/bool
 import gleam/int
-import gleam/io
 import gleam/list
+import gleam/result
+import glentities
 import lustre
 import lustre/attribute.{class}
 import lustre/element
-import lustre/element/html.{button, div, p, text}
+import lustre/element/html.{div, text}
 import lustre/event
 import tardis
 import ui
@@ -41,14 +42,11 @@ pub type Msg {
 
   // Inputs
   OnChangeName(id: Int, value: String)
-  OnChangeAmount(id: Int, value: Int)
-  OnChangeInterest(id: Int, value: Int)
-  OnChangeMinimum(id: Int, value: Int)
+  OnChangeAmount(id: Int, value: String)
+  OnChangeInterest(id: Int, value: String)
+  OnChangeMinimum(id: Int, value: String)
   Noop
 }
-
-type OnInputChange =
-  fn(Int, Int) -> Msg
 
 // TODO tardis dev tools
 fn update(model: Model, msg: Msg) -> Model {
@@ -56,33 +54,36 @@ fn update(model: Model, msg: Msg) -> Model {
   case msg {
     AddDebt -> Model(debts: list.append(model.debts, [debt.create(len)]))
     RemoveDebt(index) -> Model(debts: utils.remove_at(model.debts, index))
-    OnChangeAmount(id, amount) ->
+    OnChangeAmount(id, value) ->
       Model(
-        debts: list.map(model.debts, fn(value) {
-          use <- bool.guard(id != value.id, value)
-          debt.Debt(..value, amount:)
+        debts: list.map(model.debts, fn(item) {
+          use <- bool.guard(id != item.id, item)
+          let value = result.unwrap(int.parse(value), 0)
+          debt.Debt(..item, amount: value)
         }),
       )
 
-    OnChangeInterest(id, interest) ->
+    OnChangeInterest(id, value) ->
       Model(
-        debts: list.map(model.debts, fn(value) {
-          use <- bool.guard(id != value.id, value)
-          debt.Debt(..value, interest:)
+        debts: list.map(model.debts, fn(item) {
+          use <- bool.guard(id != item.id, item)
+          let value = result.unwrap(int.parse(value), 0)
+          debt.Debt(..item, interest: value)
         }),
       )
-    OnChangeName(id, name) ->
+    OnChangeName(id, value) ->
       Model(
-        debts: list.map(model.debts, fn(value) {
-          use <- bool.guard(id != value.id, value)
-          debt.Debt(..value, name:)
+        debts: list.map(model.debts, fn(item) {
+          use <- bool.guard(id != item.id, item)
+          debt.Debt(..item, name: value)
         }),
       )
-    OnChangeMinimum(id, minimum) ->
+    OnChangeMinimum(id, value) ->
       Model(
-        debts: list.map(model.debts, fn(value) {
-          use <- bool.guard(id != value.id, value)
-          debt.Debt(..value, minimum:)
+        debts: list.map(model.debts, fn(item) {
+          use <- bool.guard(id != item.id, item)
+          let value = result.unwrap(int.parse(value), 0)
+          debt.Debt(..item, minimum: value)
         }),
       )
     _ -> model
@@ -97,18 +98,23 @@ fn view(model: Model) {
     [class("h-screen w-full flex justify-center p-4"), keybinds(model)],
     [
       html.div([], [
-        div([class("w-full flex justify-between")], [
-          div([], [
-            ui.select([], [
-              html.option(
-                [attribute.selected(True), attribute.value("smallest")],
-                "Smallest",
-              ),
-              html.option([attribute.value("biggest")], "Biggest"),
+        // Strategy Select
+        html.label([class("flex")], [
+          text("Strategy:\u{a0}"),
+          div([class("w-full flex justify-between")], [
+            div([], [
+              ui.select([], [
+                html.option(
+                  [attribute.selected(True), attribute.value("smallest")],
+                  "Smallest",
+                ),
+                html.option([attribute.value("biggest")], "Biggest"),
+              ]),
             ]),
+            ui.button([event.on_click(AddDebt)], [text("+")]),
           ]),
-          ui.button([event.on_click(AddDebt)], [text("+")]),
         ]),
+        // Debt inputs
         element.keyed(div([class("flex flex-col")], _), {
           use current, index <- list.index_map(model.debts)
           let item = debt_input(current, index, list.length(model.debts))
@@ -116,7 +122,11 @@ fn view(model: Model) {
           #(int.to_string(current.id), item)
         }),
         html.hr([class("my-4")]),
-        table(["First", "Second"]),
+        // Payments table
+        ui.table([text("First"), text("Second")], [
+          [text("aaa"), text("bbb")],
+          [text("ccc"), text("ddd")],
+        ]),
         // html.table([class("border")], [
       //   html.thead([class("border")], [
       //     html.th([class("p-2")], [text("First")]),
@@ -154,15 +164,15 @@ fn debt_input(debt: debt.Debt, i: Int, len: Int) {
   //   |> result.replace_error([])
   // }
 
-  let handle_input = fn(smg: OnInputChange) {
-    fn(x) {
-      let assert Ok(x) = int.parse(x)
-      smg(debt.id, x)
-    }
-  }
+  let handle_input = fn(constructor) { constructor(debt.id, _) }
 
   div([class("flex"), attribute.id(int.to_string(debt.id))], [
-    ui.input([attribute.placeholder("Name"), attribute.value(debt.name)]),
+    ui.input([
+      attribute.placeholder("Name"),
+      attribute.value(debt.name),
+      attribute.value(debt.name),
+      event.on_input(handle_input(OnChangeName)),
+    ]),
     ui.input([
       attribute.type_("number"),
       attribute.placeholder("Amount"),
@@ -186,20 +196,4 @@ fn debt_input(debt: debt.Debt, i: Int, len: Int) {
     ]),
   ])
 }
-
 // TODO how to add global keyboard events? e.g. window.addEventListe`r('keyup', ...) equivalent
-
-fn table(headers: List(String)) {
-  html.table([class("border")], [
-    html.thead(
-      [class("border")],
-      list.map(headers, fn(value) { html.th([class("p-2")], [text(value)]) }),
-    ),
-    html.tbody([], [
-      html.tr([], [
-        html.td([class("p-2")], [text("aaaaa")]),
-        html.td([class("p-2")], [text("bbbbb")]),
-      ]),
-    ]),
-  ])
-}
